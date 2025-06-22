@@ -1,0 +1,50 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "services": [
+    {
+      "name": "mem0-store",
+      "image": "qdrant/qdrant",
+      "public": false,
+      "ports": "6333"
+    },
+    {
+      "name": "openmemory-api",
+      "build": {
+        "dockerfilePath": "./openmemory/api/Dockerfile",
+        "context": "./openmemory/api"
+      },
+      "healthcheck": {
+        "path": "/health",
+        "port": 8765,
+        "interval": 30,
+        "retries": 5,
+        "timeout": 20
+      },
+      "ports": "8765",
+      "env": {
+        "QDRANT_HOST": "${{services.mem0-store.host}}",
+        "QDRANT_PORT": "${{services.mem0-store.port}}",
+        "PORT": "8765"
+      }
+    },
+    {
+      "name": "openmemory-ui",
+      "build": {
+        "dockerfilePath": "./openmemory/ui/Dockerfile",
+        "context": "./openmemory/ui"
+      },
+      "healthcheck": {
+        "path": "/",
+        "port": 3000,
+        "interval": 30,
+        "retries": 5,
+        "timeout": 20
+      },
+      "ports": "3000",
+      "env": {
+        "NEXT_PUBLIC_API_URL": "https://${{services.openmemory-api.publicDomain}}",
+        "PORT": "3000"
+      }
+    }
+  ]
+} 
